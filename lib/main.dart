@@ -1,8 +1,12 @@
+import 'dart:isolate';
+
 import 'package:flutter/material.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Register the background task
   await Workmanager().initialize(callbackDispatcher,isInDebugMode: true);
   runApp(const MyApp());
 }
@@ -32,7 +36,7 @@ class MyHomePage extends StatelessWidget {
       body: Center(
         child: ElevatedButton(onPressed: ()async {
           var unique = DateTime.now().second;
-          await Workmanager().registerPeriodicTask(unique.toString(), taskName,initialDelay: Duration(seconds: 30));
+          await Workmanager().registerOneOffTask(unique.toString(), taskName,inputData: {"key":"vamsi reddy"});
         },child: Text("Schedule"),),
       ),
     );
@@ -42,11 +46,21 @@ class MyHomePage extends StatelessWidget {
 const taskName = "firstTask";
 void callbackDispatcher()
 {
+  // Create a separate isolate for the background task
+  // Spawn a separate isolate for the background task
+  Isolate.spawn(backgroundTask, null);
+}
+
+void backgroundTask(dynamic _) {
+  // Background task execution logic goes here
+  // This code runs in a separate isolate
   Workmanager().executeTask((taskName, inputData) {
+    // Task execution logic
     switch(taskName)
     {
       case "firstTask":
         print("Something something");
+        Fluttertoast.showToast(msg: "task is working");
         break;
       default:
     }
